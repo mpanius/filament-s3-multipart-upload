@@ -26,7 +26,15 @@
             x-ignore
             ax-load
             ax-load-src="{{ \Filament\Support\Facades\FilamentAsset::getAlpineComponentSrc('uppy', 'cloudmazing/filament-s3-multipart-upload') }}"
-            {{ $getExtraAlpineAttributes() }}
+            x-data="uppy({
+                state: $wire.entangle('{{ $getStatePath() }}'),
+                maxFiles: {{ $getMaxNumberOfFiles() }},
+                maxSize: {{ $getMaxFileSize() }},
+                directory: '{{ $getDirectory() }}',
+                companionUrl: '{{ $companionUrl() }}',
+                csrfToken: '{{ csrf_token() }}',
+                disk: '{{ $getDisk() }}'
+            })"
             wire:key="{{ $id }}"
         >
             <div class="uppy__input">
@@ -42,10 +50,10 @@
                             <span class="file__name font-bold text-sm" x-text="file.name"></span>
                         </div>
 
-                        <div class="file__meta space-x-2 text-xs text-neutral-700 flex items-center justify-between" x-show="file.type">
+                        <div class="file__meta space-x-2 text-xs text-neutral-700 flex items-center justify-between">
                             <div>
-                                <span class="file__size" x-text="bytesToSize(file.size)"></span>
-                                <span class="file__type" x-text="file.type"></span>
+                                <span x-show="file.type" class="file__size" x-text="bytesToSize(file.size)"></span>
+                                <span x-show="file.type" class="file__type" x-text="file.type"></span>
                             </div>
                             <div class="flex space-x-2">
                                 <button 
