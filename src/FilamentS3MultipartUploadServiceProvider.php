@@ -15,6 +15,7 @@ use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Filesystem\FilesystemManager;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Filament\Support\Assets\Css;
 
 class FilamentS3MultipartUploadServiceProvider extends PackageServiceProvider
 {
