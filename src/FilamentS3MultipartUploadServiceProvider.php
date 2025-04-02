@@ -9,6 +9,7 @@ use CloudMazing\FilamentS3MultipartUpload\Http\Controllers\MultipartUploadComple
 use CloudMazing\FilamentS3MultipartUpload\Http\Controllers\MultipartUploadController;
 use CloudMazing\FilamentS3MultipartUpload\Http\Controllers\TemporarySignedUrlController;
 use Filament\Support\Assets\AlpineComponent;
+use Filament\Support\Assets\Asset;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Filesystem\FilesystemManager;
@@ -33,29 +34,18 @@ class FilamentS3MultipartUploadServiceProvider extends PackageServiceProvider
     {
         parent::boot();
 
+        // Регистрируем скрипт для компонента
         FilamentAsset::register([
-            AlpineComponent::make('uppy', __DIR__ . '/../resources/js/dist/components/uppy.js'),
+            AlpineComponent::make('uppy', __DIR__ . '/../resources/js/dist/components/uppy.js')
+                ->loadedOnRequest(),
         ], 'cloudmazing/filament-s3-multipart-upload');
 
-        $this->app
-            ->when(MultipartUploadController::class)
-            ->needs(S3Client::class)
-            ->give(function ($app) {
-                return $app->make(FilesystemManager::class)->disk('s3')->getClient();
-            });
-
-        $this->app
-            ->when(TemporarySignedUrlController::class)
-            ->needs(S3Client::class)
-            ->give(function ($app) {
-                return $app->make(FilesystemManager::class)->disk('s3')->getClient();
-            });
-
-        $this->app
-            ->when(MultipartUploadCompletionController::class)
-            ->needs(S3Client::class)
-            ->give(function ($app) {
-                return $app->make(FilesystemManager::class)->disk('s3')->getClient();
-            });
+        // Динамически задаем S3 клиент на основе диска из запроса или конфигурации
+        $this->app->bind(S3Client::class, function ($app) {
+            $request = $app->make('request');
+            $disk = $request->header('X-S3-Disk') ?: config('filament-s3-multipart-upload.default_disk', 's3');
+            
+            return $app->make(FilesystemManager::class)->disk($disk)->getClient();
+        });
     }
 }

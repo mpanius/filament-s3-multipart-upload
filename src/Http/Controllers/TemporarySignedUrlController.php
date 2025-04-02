@@ -13,10 +13,21 @@ class TemporarySignedUrlController
     {
     }
 
+    /**
+     * Создает временный подписанный URL для загрузки части файла
+     *
+     * @param Request $request
+     * @param string $uploadId
+     * @param int $index
+     * @return array
+     */
     public function show(Request $request, string $uploadId, int $index)
     {
+        $diskName = $request->header('X-S3-Disk') ?: config('filament-s3-multipart-upload.default_disk', 's3');
+        $bucket = config("filesystems.disks.{$diskName}.bucket");
+        
         $command = $this->s3->getCommand('uploadPart', [
-            'Bucket' => config('filesystems.disks.s3.bucket'),
+            'Bucket' => $bucket,
             'Key' => $request->query('key'),
             'UploadId' => $uploadId,
             'PartNumber' => $index,
